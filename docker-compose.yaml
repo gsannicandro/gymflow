@@ -1,0 +1,84 @@
+version: '3.8'
+
+networks:
+  palestra-network:
+    driver: bridge
+
+services:
+  # NGINX GATEWAY
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_gateway
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - auth-service
+      - gym-service
+    networks:
+      - palestra-network
+
+  # AUTH SERVICE
+  auth-service:
+    build: ./backend/auth_service
+    container_name: auth_service_container
+    command: npm start
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URI=<INSERT_MONGO_URI>
+      - JWT_SECRET=<INSERT_JWT_SECRET>
+      - JWT_REFRESH_SECRET=<INSERT_JWT_REFRESH_SECRET>
+    networks:
+      - palestra-network
+
+  # GYM SERVICE
+  gym-service:
+    build: ./backend/gym_service
+    container_name: gym_service_container
+    command: npm start
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - MONGO_URI=<INSERT_MONGO_URI>
+      - JWT_SECRET=<INSERT_JWT_SECRET>
+      - INTERNAL_API_KEY=<INSERT_INTERNAL_API_KEY>
+    networks:
+      - palestra-network
+
+  # LIVE SERVICE
+  live-room-service:
+    build: ./backend/live_service
+    container_name: live_room_service_container
+    command: npm start
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - MONGO_URI=<INSERT_MONGO_URI>
+      - JWT_SECRET=<INSERT_JWT_SECRET>
+      - INTERNAL_API_KEY=<INSERT_INTERNAL_API_KEY>
+    networks:
+      - palestra-network
+
+  # FRONTEND
+  frontend:
+    build: ./frontend
+    container_name: frontend_react_container
+    command: npm start
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=0
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - nginx
+    networks:
+      - palestra-network

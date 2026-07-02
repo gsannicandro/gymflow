@@ -1,0 +1,472 @@
+openapi: 3.0.0
+info:
+  title: API Gateway Progetto Web
+  description: Documentazione delle API per il backend del progetto web.
+  version: 1.0.0
+servers:
+  - url: /api
+    description: API Gateway
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  /v1/auth/register:
+    post:
+      summary: Registra un nuovo utente
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Utente registrato con successo
+
+  /v1/auth/login:
+    post:
+      summary: Login utente
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login effettuato con successo (ritorna token)
+
+  /v1/auth/profile:
+    get:
+      summary: Ottieni il profilo dell'utente loggato
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Profilo utente
+    put:
+      summary: Aggiorna il profilo dell'utente loggato
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Profilo aggiornato
+
+  /v1/auth/password:
+    put:
+      summary: Cambia la password
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password cambiata con successo
+
+  /v1/auth/logout:
+    post:
+      summary: Effettua il logout
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Logout effettuato con successo
+
+  /v1/auth/refresh:
+    post:
+      summary: Rinnova l'access token
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token rinnovato
+
+  /v1/auth/owner/codes:
+    get:
+      summary: Ottieni tutti i codici di invito (Owner)
+      tags:
+        - Owner
+      responses:
+        '200':
+          description: Lista dei codici
+    post:
+      summary: Crea un nuovo codice di invito (Owner)
+      tags:
+        - Owner
+      responses:
+        '201':
+          description: Codice creato
+
+  /v1/auth/owner/codes/{id}:
+    delete:
+      summary: Elimina un codice di invito (Owner)
+      tags:
+        - Owner
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Codice eliminato
+
+  /v1/auth/owner/users:
+    get:
+      summary: Ottieni tutti gli utenti (Owner)
+      tags:
+        - Owner
+      responses:
+        '200':
+          description: Lista utenti
+
+  /v1/auth/owner/users/{id}:
+    delete:
+      summary: Elimina un utente (Owner)
+      tags:
+        - Owner
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Utente eliminato
+
+  /v1/gym/bookings:
+    post:
+      summary: Prenota una macchina
+      tags:
+        - Bookings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                machineId:
+                  type: string
+                startTime:
+                  type: string
+                  format: date-time
+                endTime:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Prenotazione effettuata
+
+  /v1/gym/bookings/{id}:
+    patch:
+      summary: Cancella una prenotazione (soft delete)
+      tags:
+        - Bookings
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Prenotazione cancellata
+
+  /v1/gym/courses:
+    get:
+      summary: Ottieni tutti i corsi
+      description: Supporta ?enrolled=true per ottenere i corsi dell'utente.
+      tags:
+        - Courses
+      parameters:
+        - in: query
+          name: enrolled
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista dei corsi
+    post:
+      summary: Crea un nuovo corso (Admin)
+      tags:
+        - Courses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                instructor:
+                  type: string
+      responses:
+        '201':
+          description: Corso creato
+
+  /v1/gym/courses/{id}:
+    delete:
+      summary: Elimina un corso (Admin)
+      tags:
+        - Courses
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Corso eliminato
+
+  /v1/gym/courses/{id}/enrollments:
+    post:
+      summary: Iscrivi l'utente a un corso
+      tags:
+        - Courses
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Iscrizione effettuata
+    delete:
+      summary: Disiscrivi l'utente da un corso
+      tags:
+        - Courses
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Disiscrizione effettuata
+
+  /v1/gym/courses/{id}/messages:
+    get:
+      summary: Ottieni lo storico dei messaggi del corso (solo iscritti)
+      tags:
+        - Courses
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Storico messaggi
+
+  /v1/gym/machines:
+    get:
+      summary: Ottieni tutte le macchine e lo stato live
+      tags:
+        - Machines
+      responses:
+        '200':
+          description: Lista macchine
+
+  /v1/gym/machines/{id}:
+    patch:
+      summary: Aggiorna lo stato della macchina (Admin)
+      tags:
+        - Machines
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Stato aggiornato
+
+  /v1/gym/machines/{id}/session:
+    post:
+      summary: Inizia una sessione d'uso su una macchina
+      tags:
+        - Machines
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sessione iniziata
+    delete:
+      summary: Termina la sessione d'uso su una macchina
+      tags:
+        - Machines
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sessione terminata
+
+  /v1/gym/machines/{id}/queue:
+    post:
+      summary: Unisciti alla coda per una macchina
+      tags:
+        - Machines
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Aggiunto alla coda
+    delete:
+      summary: Esci dalla coda per una macchina
+      tags:
+        - Machines
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rimosso dalla coda
+
+  /v1/gym/workouts:
+    get:
+      summary: Ottieni gli allenamenti dell'utente
+      description: Filtra per ?status=active o ?status=completed
+      tags:
+        - Workouts
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, completed]
+      responses:
+        '200':
+          description: Lista allenamenti
+    post:
+      summary: Genera un allenamento
+      tags:
+        - Workouts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                goal:
+                  type: string
+      responses:
+        '201':
+          description: Allenamento generato
+
+  /v1/gym/workouts/{workoutId}/exercises/{exerciseId}:
+    patch:
+      summary: Aggiorna un esercizio specifico in un allenamento (es. segna come completato)
+      tags:
+        - Workouts
+      parameters:
+        - in: path
+          name: workoutId
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: exerciseId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                completed:
+                  type: boolean
+      responses:
+        '200':
+          description: Esercio aggiornato
